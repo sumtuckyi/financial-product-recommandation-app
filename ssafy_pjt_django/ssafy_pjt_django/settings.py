@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'reviews',
     'portfolios',
     'products',
+    
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
