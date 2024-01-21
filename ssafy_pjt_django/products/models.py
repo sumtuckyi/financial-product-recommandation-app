@@ -15,8 +15,10 @@ class SmallCategory(models.Model):
 class Product(models.Model):
     item = models.TextField() # 상품명
     price = models.IntegerField() # 가격
-    exp = models.IntegerField() # 유통기한
+    exp = models.IntegerField(null=True, blank=True) # 유통기한
+    img_url = models.TextField() # 이미지 url
     category = models.ForeignKey(SmallCategory, on_delete=models.CASCADE) # 소분류 인덱스
+    
 
 class Order(models.Model):
     # 주문 건과 유저를 연결
