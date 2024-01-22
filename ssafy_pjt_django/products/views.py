@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import datetime
 import random
 from rest_framework.response import Response
@@ -9,6 +10,7 @@ from django.shortcuts import get_list_or_404, get_object_or_404
 
 from .models import MajorCategory, SmallCategory, Product, Order
 from .serializers import ProductSerializer, MajorCategorySerializer, SmallCategorySerializer, OrderSerializer
+
 
 # Create your views here.
 # 선택한 품목의 리스트 보여주기(예-우유)
@@ -23,18 +25,21 @@ def get_list_by_cate(request, cate_idx):
 # 키워드를 받아서 해당 키워드를 포함하는 품목 데이터 보내기
 @api_view(['GET'])
 def get_list_by_keyword(request, keyword):
-    products = Product.objects.filter(item__contains=keyword)
-    serializer = ProductSerializer(products, many=True)
-    return Response(serializer.data)
+    # 검색어에 해당하는 품목이 있는 경우
+    if Product.objects.filter(item__contains=keyword).exists():
+        products = Product.objects.filter(item__icontains=keyword) # 대소문자 구분 안 함
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+    else: # 없다면
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
 
 # 카테고리 목록을 보내기
 @api_view(['GET'])
 def get_category(request):
     categories = get_list_or_404(MajorCategory)
-    serializer = MajorCategorySerializer(categories)
+    serializer = MajorCategorySerializer(categories, many=True)
     return Response(serializer.data)
-
 
 
 # 주문 데이터 추가하기 - 요청 시 데이터를 Json으로 받기
@@ -45,9 +50,15 @@ def get_category(request):
 @api_view(['POST'])
 def write_order(request):
     # 상품목록이 배열에 담겨있고, 각각의 상품 목록마다 주문과 관계를 맺어주어야 함 
-    data = json.loads(request.data)
+    print("함수 호출")
+    # data = json.loads(request.data)
+    data = request.data # dict 
+   
     # 유저 정보 추출
-    user = data.user
+    user = int(data["user"])
+    pdts = data["pdts"]
+
+    temp = list(map(int, re.sub(r'[\[\],]','',pdts).split(' ')))
 
     # Order 테이블에 들어갈 딕셔너리 object 생성
     new_order = {
@@ -63,7 +74,7 @@ def write_order(request):
         new_order = serializer.save() # db에 저장
         
         # 주문과 상품간 mtom 테이블에 관계 추가해주기
-        for pdt_idx in data.pdts:
+        for pdt_idx in temp:
             # Product table에서 필요한 인스턴스 찾아오기
             product = get_object_or_404(Product, pk=pdt_idx)
             new_order.products.add(product)
@@ -75,3 +86,4 @@ def write_order(request):
 
     
  
+
