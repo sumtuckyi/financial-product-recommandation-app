@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-
+import random
 
 # Create your models here.
 # 각 상품을 카테고리로 분류 
@@ -25,8 +25,14 @@ class Order(models.Model):
     # 주문 건과 유저를 연결
     # 회원 고유 번호
     user_id = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    date = models.DateField() # 주문시간
+    date = models.DateTimeField(auto_now_add=True) # 주문시간
     shipping_speed = models.IntegerField() # 소요시간
     products = models.ManyToManyField(Product, related_name='my_order', blank=True)
+    
+    def save(self, *args, **kwargs):
+        if self.shipping_speed is None:
+            self.shipping_speed = random.randint(1, 24)
+        
+        super().save(*args, **kwargs)
 
 

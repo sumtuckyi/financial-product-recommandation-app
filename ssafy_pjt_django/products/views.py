@@ -60,13 +60,17 @@ def write_order(request):
 
     temp = list(map(int, re.sub(r'[\[\],]','',pdts).split(' ')))
 
-    # Order 테이블에 들어갈 딕셔너리 object 생성
     new_order = {
         'user_id': user,
-        'date': datetime.today().strftime("%Y/%m/%d %H:%M"),
-        'shipping_speed': random.randint(1, 24),
     }
 
+    # Order 테이블에 들어갈 딕셔너리 object 생성
+    # new_order = {
+    #     'user_id': user,
+    #     # 'date': datetime.today().strftime("%Y-%m-%d %H:%M"),
+    #     'shipping_speed': random.randint(1, 24)
+    # }
+    print(new_order)
     # 일단 해당 유저의 주문 instance를 생성 - 유효성 검사 필요
     serializer = OrderSerializer(data=new_order)
     
